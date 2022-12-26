@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            canvas {
+                display: block;
+                margin: auto;
+                border:1px solid #d3d3d3;
+                background-color: #f1f1f1;
+            }
+            div {
+                width: 40%;
+                margin: 10px auto;
+                text-align: center;
+            }
+            button {
+                width: 180px;
+                outline: 0;
+                border: 0;
+                height: 40px;
+                border-radius: 50%;
+                background-color: rgb(128 , 65 , 0);
+                color: #fff;
+                font-size: 17px;
+                cursor: pointer;
+            }
+            div >button:first-of-type , div >button:last-of-type
+            {
+                display: block;
+                margin: auto;
+            }
+            button.control
+            {
+                display: block;
+                margin: 20px auto;
+                background: green;
+            }
+            button:focus {
+                outline: 0;
+            }
+            @media screen and (max-width: 1000px)
+            {
+                canvas ,div {
+                    width: 100%;
+                }
+            }
+            @media screen and (max-width: 499px)
+            {
+                div > button
+                {
+                    width: 120px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <canvas></canvas>
+        <button class="control" id="control" onclick="startGame();">Start</button>
+        <div>
+            <button onmousedown="up()" onmouseup="clearmove()" ontouchstart="up()">UP</button>
+            <button onmousedown="right()" onmouseup="clearmove()" ontouchstart="right()">RIGHT</button>
+            <button onmousedown="left()" onmouseup="clearmove()" ontouchstart="left()">LEFT</button>
+            <button onmousedown="down()" onmouseup="clearmove()" ontouchstart="down()">DOWN</button>
+        </div>
+        <script>
+        
+        /*اول اما اضغط ع زر البدايه بينادي ع داله
+        startGame()
+        الداله بتعملي ال components
+        وبتنادي ع داله ال start الموجوده ف الاوبجت gamearea
+        الداله بتعمل انيميشن كل 20 مل ثانيه ينفذ فانكشن ال area
+        والداله بترسم المكونات كل 20 مل ثانيه باوضاع مختلفه فبيظهر الشكل ف صوره انيميشن*/
+
+        var gameArea = {
+            canvas : document.querySelector("canvas") ,
+            start : function () {
+                this.myContext = this.canvas.getContext("2d");
+                this.canvas.width = "600";
+                this.canvas.height = "280";
+                this.interval = window.setInterval(area , 20);
+            }
+        };
+        var shapes = [] ,
+            control;
+        function startGame ()
+        {
+            control = document.getElementById("control");
+            control.style.display = "none";
+            gameArea.start();
+            comp = new Component(30 , 120 , 30 , 30 , "green" , "rextangle");
+            text = new Component(350 , 50 , 50 , 50 , "green" , "text" , "Score : ");
+            x = gameArea.canvas.width;
+            for (var i = 0; i < 100; i++)
+            {
+                y = (Math.random() * 120);
+                shapes.push(new Component(x , y , 10 , 160 , "rgb(128 , 65 , 0)" , "rectangle"));
+                x += 150;
+            }
+        }
+        var inc = 1;
+        function Component (x , y , width , height , color , type , txt) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.dx = 0;
+            this.dy = 0;
+            this.color = color;
+            this.type = type;
+            this.txt = txt;
+            this.draw = function () {
+                if (this.type == "text")
+                {
+                    gameArea.myContext.font = "40px Arial";
+                    gameArea.myContext.fillStyle = this.color;
+                    gameArea.myContext.fillText(this.txt , this.x , this.y);
+                    this.txt = "Score : " + inc++;
+                }
+                else
+                {
+                    gameArea.myContext.fillStyle = this.color;
+                    gameArea.myContext.fillRect(this.x , this.y , this.width , this.height);
+                }
+            }
+            this.newPos = function () {
+                this.y += this.dy;
+                this.x += this.dx;
+            }
+            this.crash = function (otherObj) {
+                this.left = this.x;
+                this.right = this.x + this.width;
+                this.top = this.y;
+                this.bottom = this.top + this.height;
+                otherObj.left = otherObj.x;
+                otherObj.right = otherObj.x + otherObj.width;
+                otherObj.top = otherObj.y;
+                otherObj.bottom = otherObj.top + otherObj.height;
+                if (this.left > otherObj.right || this.right < otherObj.left || this.top > otherObj.bottom || this.bottom < otherObj.top) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        function area ()
+        {
+            gameArea.myContext.clearRect(0 , 0 , gameArea.canvas.width , gameArea.canvas.height);
+            comp.newPos();
+            comp.draw();
+            for (var i = 0; i < shapes.length; i++)
+            {
+                shapes[i].draw();
+                shapes[i].x -= 2;
+                if (comp.crash(shapes[i]) || shapes[shapes.length - 1].x < -10)
+                {
+                    window.clearInterval(gameArea.interval);
+                }
+            }
+            text.draw();
+        }
+        function clearmove() {
+            comp.dx = 0;
+            comp.dy = 0;
+        }
+        function up()
+        {
+            comp.dy = -3;
+        }
+        function down()
+        {
+            comp.dy = 3;
+        }
+        function right()
+        {
+            comp.dx = 3;
+        }
+        function left()
+        {
+            comp.dx = -3;
+        }
+        </script>
+    </body>
+</html>
